@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>하루온 영단어</title>
+  <meta name="theme-color" content="#6C8EBF">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="영단어">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Firebase compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ══════════════ 로그인 화면 ══════════════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="logo">📚</div>
+    <h1>하루온 영단어</h1>
+    <p>하루온 미술 학원 영단어 학습<br>Google 계정으로 시작하세요</p>
+    <button id="googleBtn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+      Google 계정으로 로그인
+    </button>
+    <p id="loginStatus"></p>
+    <p id="loginError"></p>
+  </div>
+</div>
+
+<!-- ══════════════ 승인 대기 화면 ══════════════ -->
+<div id="pendingScreen" class="hidden">
+  <div class="login-card">
+    <div class="logo">⏳</div>
+    <h1>승인 대기 중</h1>
+    <p>관리자 승인 후 이용 가능합니다.<br><br>
+      <b id="pendingEmail" style="color:var(--primary-dark)"></b>
+    </p>
+    <p style="font-size:.8rem;color:var(--text-muted);margin-top:16px">
+      담당 선생님께 이메일 주소를 알려주세요.<br>승인 후 다시 로그인해주세요.
+    </p>
+    <button id="pendingLogout" class="btn btn-ghost" style="margin-top:24px;width:100%">
+      <i class="fas fa-sign-out-alt"></i> 로그아웃
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ 앱 화면 ══════════════ -->
+<div id="appScreen" class="hidden">
+
+  <!-- 상단 헤더 -->
+  <header class="app-header">
+    <span class="header-title">📚 하루온 영단어</span>
+    <div class="header-right">
+      <span id="headerEmail" class="header-email"></span>
+      <button id="logoutBtn" class="icon-btn" title="로그아웃">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- 페이지 컨테이너 -->
+  <main class="main-content">
+
+    <!-- 대시보드 -->
+    <div id="page-dashboard" class="page"></div>
+
+    <!-- 학습 -->
+    <div id="page-learning" class="page hidden"></div>
+
+    <!-- 테스트 -->
+    <div id="page-quiz" class="page hidden"></div>
+
+    <!-- 관리자 -->
+    <div id="page-admin" class="page hidden"></div>
+
+  </main>
+
+  <!-- 하단 네비 -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+      <i class="fas fa-chart-line"></i>
+      <span>성적</span>
+    </div>
+    <div class="nav-item" data-page="learning" onclick="navigate('learning')">
+      <i class="fas fa-book-open"></i>
+      <span>학습</span>
+    </div>
+    <div class="nav-item" data-page="quiz" onclick="navigate('quiz')">
+      <i class="fas fa-pencil-alt"></i>
+      <span>테스트</span>
+    </div>
+    <div class="nav-item admin-tab" data-page="admin" onclick="navigate('admin')" style="display:none">
+      <i class="fas fa-cog"></i>
+      <span>관리</span>
+    </div>
+  </nav>
+
+</div>
+
+<!-- 토스트 메시지 -->
+<div id="toast"></div>
+
+<!-- JS -->
+<script src="js/firebase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/learning.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/app.js"></script>
+
+<!-- 관리자 탭 표시 -->
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user && user.email === ADMIN_EMAIL) {
+        document.querySelector('.admin-tab').style.display = '';
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
