@@ -1,0 +1,14 @@
+# Firebase 서비스 계정 키 (절대 커밋 금지)
+serviceAccountKey.json
+*.json
+
+# Streamlit secrets (절대 커밋 금지)
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
