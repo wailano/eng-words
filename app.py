@@ -135,25 +135,19 @@ def show_login_page():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
-        # window.parent.location.origin 으로 현재 호스트 자동 감지 (로컬/클라우드 모두 대응)
-        components.html("""
-<style>
-  #login-btn {
-    width:100%; padding:13px 20px; background:white; color:#444;
-    border:1.5px solid #ddd; border-radius:8px; cursor:pointer;
-    font-size:15px; display:flex; align-items:center; justify-content:center;
-    gap:10px; box-shadow:0 2px 6px rgba(0,0,0,.1); font-family:'Segoe UI',sans-serif;
-    transition:box-shadow .2s;
-  }
-  #login-btn:hover { box-shadow:0 4px 14px rgba(0,0,0,.2); }
-  #login-btn img { width:20px; }
-</style>
-<button id="login-btn"
-  onclick="window.parent.location.href = window.parent.location.origin + '/app/static/auth.html'">
-  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
-  Google 계정으로 로그인
-</button>
-""", height=60)
+        # 현재 호스트를 Python에서 읽어 auth.html URL 생성 (모바일 포함 모든 환경 대응)
+        try:
+            host = st.context.headers.get("host", "localhost:8501")
+            protocol = "https" if "streamlit.app" in host else "http"
+            auth_url = f"{protocol}://{host}/app/static/auth.html"
+        except Exception:
+            auth_url = "http://localhost:8501/app/static/auth.html"
+
+        st.link_button(
+            "🔐  Google 계정으로 로그인",
+            auth_url,
+            use_container_width=True,
+        )
 
 
 # ── 쿼리 파라미터 → 토큰 검증 ────────────────────────────────
