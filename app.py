@@ -135,12 +135,25 @@ def show_login_page():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
-        # static/auth.html 을 직접 열어 로그인 → 토큰을 쿼리파라미터로 받아옴
-        st.link_button(
-            "🔐  Google 계정으로 로그인",
-            "http://localhost:8501/app/static/auth.html",
-            use_container_width=True,
-        )
+        # window.parent.location.origin 으로 현재 호스트 자동 감지 (로컬/클라우드 모두 대응)
+        components.html("""
+<style>
+  #login-btn {
+    width:100%; padding:13px 20px; background:white; color:#444;
+    border:1.5px solid #ddd; border-radius:8px; cursor:pointer;
+    font-size:15px; display:flex; align-items:center; justify-content:center;
+    gap:10px; box-shadow:0 2px 6px rgba(0,0,0,.1); font-family:'Segoe UI',sans-serif;
+    transition:box-shadow .2s;
+  }
+  #login-btn:hover { box-shadow:0 4px 14px rgba(0,0,0,.2); }
+  #login-btn img { width:20px; }
+</style>
+<button id="login-btn"
+  onclick="window.parent.location.href = window.parent.location.origin + '/app/static/auth.html'">
+  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
+  Google 계정으로 로그인
+</button>
+""", height=60)
 
 
 # ── 쿼리 파라미터 → 토큰 검증 ────────────────────────────────
