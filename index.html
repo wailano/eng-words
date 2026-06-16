@@ -127,16 +127,6 @@
 <script src="js/admin.js"></script>
 <script src="js/app.js"></script>
 
-<!-- 관리자 탭 표시 -->
-<script>
-  window.addEventListener('DOMContentLoaded', () => {
-    firebase.auth().onAuthStateChanged(user => {
-      if (user && user.email === ADMIN_EMAIL) {
-        document.querySelector('.admin-tab').style.display = '';
-      }
-    });
-  });
-</script>
 
 </body>
 </html>

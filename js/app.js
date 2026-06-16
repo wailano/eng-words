@@ -5,11 +5,18 @@
 ════════════════════════════════════════════ */
 let _db, _auth, _currentUser = null;
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   firebase.initializeApp(FIREBASE_CONFIG);
   _db   = firebase.firestore();
   _auth = firebase.auth();
   DB.init(_db);
+
+  // 모바일 리다이렉트 로그인 결과 처리
+  try {
+    await _auth.getRedirectResult();
+  } catch(e) {
+    document.getElementById('loginError').textContent = e.message;
+  }
 
   _auth.onAuthStateChanged(async user => {
     if (!user) { showScreen('login'); return; }
@@ -27,12 +34,20 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('pendingLogout').addEventListener('click', doLogout);
 });
 
+function isMobile() {
+  return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+}
+
 async function doLogin() {
   const provider = new firebase.auth.GoogleAuthProvider();
   document.getElementById('loginStatus').textContent = '로그인 중...';
   document.getElementById('loginError').textContent  = '';
   try {
-    await _auth.signInWithPopup(provider);
+    if (isMobile()) {
+      await _auth.signInWithRedirect(provider);
+    } else {
+      await _auth.signInWithPopup(provider);
+    }
   } catch(e) {
     document.getElementById('loginStatus').textContent = '';
     document.getElementById('loginError').textContent  = e.message;
@@ -56,6 +71,9 @@ function showPending(user) {
 
 function initApp(user) {
   document.getElementById('headerEmail').textContent = user.email;
+  if (user.email === ADMIN_EMAIL) {
+    document.querySelector('.admin-tab').style.display = '';
+  }
   showScreen('app');
 }
 
