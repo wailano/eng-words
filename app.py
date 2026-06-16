@@ -145,22 +145,22 @@ def show_login_page():
 
         components.html(f"""
 <style>
-  body {{ margin:0; display:flex; justify-content:center; }}
-  #btn {{
-    width:100%; max-width:480px; padding:13px 20px;
-    background:white; color:#444; border:1.5px solid #ddd;
-    border-radius:8px; cursor:pointer; font-size:15px;
-    display:flex; align-items:center; justify-content:center; gap:10px;
-    box-shadow:0 2px 6px rgba(0,0,0,.1); font-family:'Segoe UI',sans-serif;
+  body {{ margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:56px; }}
+  a {{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:13px 28px; background:white; color:#444;
+    border:1.5px solid #ddd; border-radius:8px;
+    font-size:15px; font-family:'Segoe UI',sans-serif;
+    text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,.1);
     transition:box-shadow .2s;
   }}
-  #btn:hover {{ box-shadow:0 4px 14px rgba(0,0,0,.2); }}
-  #btn img {{ width:20px; }}
+  a:hover {{ box-shadow:0 4px 14px rgba(0,0,0,.2); }}
+  img {{ width:20px; height:20px; }}
 </style>
-<button id="btn" onclick="window.top.location.href='{auth_url}'">
+<a href="{auth_url}" target="_top">
   <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
   Google 계정으로 로그인
-</button>
+</a>
 """, height=60)
 
 
