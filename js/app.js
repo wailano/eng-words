@@ -5,18 +5,24 @@
 ════════════════════════════════════════════ */
 let _db, _auth, _currentUser = null;
 
-window.addEventListener('DOMContentLoaded', async () => {
+function isInAppBrowser() {
+  const ua = navigator.userAgent;
+  return /KAKAOTALK|NAVER|Line|Instagram|FB_IAB|FBAN|Twitter|Weibo|MicroMessenger/i.test(ua);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  // 인앱 브라우저 감지
+  if (isInAppBrowser()) {
+    document.getElementById('loginStatus').textContent = '';
+    document.getElementById('loginError').textContent =
+      '⚠️ 인앱 브라우저에서는 로그인이 안 됩니다.\nChrome 앱을 직접 열고 주소창에\nwailano.github.io/eng-words\n를 입력해주세요.';
+    return;
+  }
+
   firebase.initializeApp(FIREBASE_CONFIG);
   _db   = firebase.firestore();
   _auth = firebase.auth();
   DB.init(_db);
-
-  // 모바일 리다이렉트 로그인 결과 처리
-  try {
-    await _auth.getRedirectResult();
-  } catch(e) {
-    document.getElementById('loginError').textContent = e.message;
-  }
 
   _auth.onAuthStateChanged(async user => {
     if (!user) { showScreen('login'); return; }
@@ -34,20 +40,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('pendingLogout').addEventListener('click', doLogout);
 });
 
-function isMobile() {
-  return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-}
-
 async function doLogin() {
   const provider = new firebase.auth.GoogleAuthProvider();
   document.getElementById('loginStatus').textContent = '로그인 중...';
   document.getElementById('loginError').textContent  = '';
   try {
-    if (isMobile()) {
-      await _auth.signInWithRedirect(provider);
-    } else {
-      await _auth.signInWithPopup(provider);
-    }
+    await _auth.signInWithPopup(provider);
   } catch(e) {
     document.getElementById('loginStatus').textContent = '';
     document.getElementById('loginError').textContent  = e.message;
