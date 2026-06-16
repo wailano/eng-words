@@ -26,13 +26,18 @@ window.addEventListener('DOMContentLoaded', () => {
 
   _auth.onAuthStateChanged(async user => {
     if (!user) { showScreen('login'); return; }
-    const approved = await DB.users.isApproved(user.email);
-    if (!approved) { showPending(user); return; }
-    _currentUser = user;
-    await DB.users.ensureAdmin();
-    await DB.words.seedIfEmpty();
-    initApp(user);
-    navigate('dashboard');
+    try {
+      const approved = await DB.users.isApproved(user.email);
+      if (!approved) { showPending(user); return; }
+      _currentUser = user;
+      DB.users.ensureAdmin().catch(e => console.warn('ensureAdmin:', e));
+      DB.words.seedIfEmpty().catch(e => console.warn('seedIfEmpty:', e));
+      initApp(user);
+      navigate('dashboard');
+    } catch(e) {
+      showScreen('login');
+      document.getElementById('loginError').textContent = '오류: ' + e.message;
+    }
   });
 
   document.getElementById('googleBtn').addEventListener('click', doLogin);
