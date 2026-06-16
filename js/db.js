@@ -113,8 +113,8 @@ const DB = (() => {
     },
     async list(email) {
       const snap = await _db.collection('test_history')
-        .where('user_email','==',email).orderBy('test_date').get();
-      return snap.docs.map(d => d.data());
+        .where('user_email','==',email).get();
+      return snap.docs.map(d => d.data()).sort((a,b) => a.test_date > b.test_date ? 1 : -1);
     }
   };
 

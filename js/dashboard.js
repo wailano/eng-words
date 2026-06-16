@@ -7,7 +7,13 @@ const DashboardModule = (() => {
     const el = document.getElementById('page-dashboard');
     el.innerHTML = `<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>불러오는 중...</p></div>`;
 
-    const records = await DB.scores.list(email);
+    let records;
+    try { records = await DB.scores.list(email); }
+    catch(e) {
+      el.innerHTML = `<h2 style="margin-bottom:16px">📊 성적 대시보드</h2>
+        <div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>데이터 로드 실패: ${e.message}</p></div>`;
+      return;
+    }
 
     if (!records.length) {
       el.innerHTML = `
