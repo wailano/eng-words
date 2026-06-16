@@ -89,7 +89,7 @@ function navigate(page) {
     el.classList.toggle('hidden', el.id !== 'page-' + page)
   );
 
-  if (page === 'dashboard') DashboardModule.render(_currentUser.email);
+  if (page === 'dashboard') DashboardModule.render(_currentUser.email, _currentUser.email === ADMIN_EMAIL);
   if (page === 'learning')  LearningModule.render();
   if (page === 'quiz')      QuizModule.render();
   if (page === 'admin' && _currentUser.email === ADMIN_EMAIL) AdminModule.render();

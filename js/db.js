@@ -115,6 +115,10 @@ const DB = (() => {
       const snap = await _db.collection('test_history')
         .where('user_email','==',email).get();
       return snap.docs.map(d => d.data()).sort((a,b) => a.test_date > b.test_date ? 1 : -1);
+    },
+    async listAll() {
+      const snap = await _db.collection('test_history').get();
+      return snap.docs.map(d => d.data()).sort((a,b) => a.test_date > b.test_date ? 1 : -1);
     }
   };
 
