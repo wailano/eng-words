@@ -4,7 +4,7 @@ const QuizModule = (() => {
   const TOTAL = 30;
   let _words = [], _qList = [], _current = 0;
   let _score = 0, _wrongs = [];
-  let _level = 'elementary', _type = 'all', _hintOn = false;
+  let _level = 'elementary', _type = 'all', _hintOn = false, _dir = 'en_to_ko';
   let _answered = false;
 
   function render() {
@@ -21,26 +21,32 @@ const QuizModule = (() => {
           <option value="word">단어</option>
           <option value="idiom">숙어</option>
         </select>
+        <select id="qdir" onchange="QuizModule.onFilter()">
+          <option value="en_to_ko">영→한</option>
+          <option value="ko_to_en">한→영</option>
+        </select>
         <label style="display:flex;align-items:center;gap:6px;font-size:.9rem;white-space:nowrap;">
-          <input type="checkbox" id="qhint" onchange="QuizModule.onFilter()"> 초성힌트
+          <input type="checkbox" id="qhint" onchange="QuizModule.onFilter()"> 힌트
         </label>
         <button class="btn btn-primary" style="white-space:nowrap" onclick="QuizModule.startQuiz()">시작</button>
       </div>
       <div id="quizArea">
         <div class="empty-state">
           <i class="fas fa-pencil-alt"></i>
-          <p>설정 후 <b>시작</b>을 누르세요.<br>${TOTAL}문제 랜덤 출제 (영→한 뜻 맞추기)</p>
+          <p>설정 후 <b>시작</b>을 누르세요.<br>${TOTAL}문제 랜덤 출제</p>
         </div>
       </div>`;
 
-    document.getElementById('qlv').value = _level;
-    document.getElementById('qt').value  = _type;
+    document.getElementById('qlv').value  = _level;
+    document.getElementById('qt').value   = _type;
+    document.getElementById('qdir').value = _dir;
     document.getElementById('qhint').checked = _hintOn;
   }
 
   function onFilter() {
     _level  = document.getElementById('qlv').value;
     _type   = document.getElementById('qt').value;
+    _dir    = document.getElementById('qdir').value;
     _hintOn = document.getElementById('qhint').checked;
   }
 
@@ -75,6 +81,17 @@ const QuizModule = (() => {
     const pct = Math.round(_current / _qList.length * 100);
     _answered = false;
 
+    const isEnToKo = _dir === 'en_to_ko';
+    const question  = isEnToKo ? w.word_en : w.word_ko;
+    const qLang     = isEnToKo ? '영어' : '한글';
+    const choiceLbl = isEnToKo ? '한글 뜻을 고르세요' : '영어 단어를 고르세요';
+    const bg        = isEnToKo ? '#EBF8FF' : '#FFF0F8';
+
+    // 힌트: 영→한이면 초성힌트, 한→영이면 영어 첫 글자+길이
+    const hintText = isEnToKo
+      ? (w.hint_ko || '')
+      : `영어 ${w.word_en.length}글자, '${w.word_en[0]}'로 시작`;
+
     const choicePool = shuffle(_words.filter(x => x.id !== w.id)).slice(0, 3);
     const choices    = shuffle([w, ...choicePool]);
 
@@ -82,21 +99,22 @@ const QuizModule = (() => {
       <div class="progress-bar-wrap">
         <div class="progress-bar-fill" style="width:${pct}%"></div>
       </div>
-      <div class="progress-label">${_current+1} / ${_qList.length} &nbsp;|&nbsp; 현재 점수: ${_score}</div>
+      <div class="progress-label">${_current+1} / ${_qList.length} &nbsp;|&nbsp; 점수: ${_score}</div>
 
-      <div class="flashcard" style="background:#EBF8FF;cursor:default">
-        <div class="lang-label">영어</div>
-        <div class="word">${w.word_en}</div>
-        ${_hintOn && w.hint_ko ? `<div class="hint-box" style="margin-top:12px">💡 ${w.hint_ko}</div>` : ''}
+      <div class="flashcard" style="background:${bg};cursor:default">
+        <div class="lang-label">${qLang}</div>
+        <div class="word">${question}</div>
+        ${isEnToKo ? `<div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="speak('${w.word_en.replace(/'/g,"\\'")}')">🔊</button></div>` : ''}
+        ${_hintOn && hintText ? `<div class="hint-box" style="margin-top:12px">💡 ${hintText}</div>` : ''}
       </div>
 
       <div style="margin-top:16px">
-        <p style="font-weight:600;margin-bottom:10px;color:var(--text-sub)">한글 뜻을 고르세요</p>
+        <p style="font-weight:600;margin-bottom:10px;color:var(--text-sub)">${choiceLbl}</p>
         <div class="choices" id="choices">
           ${choices.map((c,i) => `
             <button class="choice-btn" id="choice-${i}"
               onclick="QuizModule.checkAnswer('${c.id}','${w.id}',${i})">
-              ${c.word_ko}
+              ${isEnToKo ? c.word_ko : c.word_en}
             </button>`).join('')}
         </div>
       </div>
@@ -104,35 +122,29 @@ const QuizModule = (() => {
       <div id="qFeedback"></div>
       <div id="qNextWrap"></div>`;
 
-    speak(w.word_en);
+    if (isEnToKo) speak(w.word_en);
   }
 
   function checkAnswer(selectedId, correctId, btnIdx) {
     if (_answered) return;
     _answered = true;
 
-    const correct = selectedId === correctId;
+    const correct   = selectedId === correctId;
+    const w         = _qList[_current];
+    const isEnToKo  = _dir === 'en_to_ko';
+    const correctAns = isEnToKo ? w.word_ko : w.word_en;
+
     if (correct) _score++;
-    else         _wrongs.push(_qList[_current]);
+    else         _wrongs.push(w);
 
     document.querySelectorAll('.choice-btn').forEach((btn, i) => {
       btn.disabled = true;
-      if (btn.id === `choice-${btnIdx}`) {
-        btn.classList.add(correct ? 'correct' : 'wrong');
-      }
+      if (btn.id === `choice-${btnIdx}`) btn.classList.add(correct ? 'correct' : 'wrong');
     });
-    // Also highlight correct answer when wrong
-    if (!correct) {
-      document.querySelectorAll('.choice-btn').forEach(btn => {
-        const idx = btn.id.replace('choice-','');
-        // find which button has the correct word
-      });
-      // Simpler: re-render choices to show correct
-    }
 
     document.getElementById('qFeedback').innerHTML =
       `<div class="answer-box" style="background:${correct?'#C6F6D5':'#FED7D7'};color:#2D3748;margin-top:12px">
-        ${correct ? '✅ 정답!' : `❌ 오답 — 정답: <b>${_qList[_current].word_ko}</b>`}
+        ${correct ? '✅ 정답!' : `❌ 오답 — 정답: <b>${correctAns}</b>`}
       </div>`;
 
     document.getElementById('qNextWrap').innerHTML =
@@ -146,14 +158,17 @@ const QuizModule = (() => {
   function nextQuestion() { _current++; renderQuestion(); }
 
   async function renderResult() {
-    const pct = Math.round(_score / _qList.length * 100);
+    const pct      = Math.round(_score / _qList.length * 100);
+    const dirLabel = _dir === 'en_to_ko' ? '영→한' : '한→영';
 
     document.getElementById('quizArea').innerHTML = `
       <div class="card" style="text-align:center">
         <div style="font-size:3rem;margin-bottom:8px">${pct>=80?'🎉':pct>=60?'👍':'💪'}</div>
         <h2>${_score} / ${_qList.length}</h2>
         <p style="font-size:1.1rem;color:var(--text-sub);margin:4px 0">${pct}점</p>
-        <p style="color:var(--text-sub);font-size:.9rem">${_level==='elementary'?'초등':'중등'} · ${_type==='all'?'전체':_type==='word'?'단어':'숙어'}</p>
+        <p style="color:var(--text-sub);font-size:.9rem">
+          ${_level==='elementary'?'초등':'중등'} · ${_type==='all'?'전체':_type==='word'?'단어':'숙어'} · ${dirLabel}
+        </p>
         <div id="saveStatus" style="margin:12px 0;color:var(--primary)"></div>
         <button class="btn btn-primary" style="margin-top:8px" onclick="QuizModule.startQuiz()">다시 시험</button>
       </div>
@@ -171,7 +186,6 @@ const QuizModule = (() => {
             </div>`).join('')}
         </div>` : ''}`;
 
-    // Save score
     const email = typeof _currentUser !== 'undefined' && _currentUser ? _currentUser.email : null;
     if (email) {
       try {
